@@ -7,3 +7,17 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+# argon2 = { version = "0.5", features = ["std"] }
+axum = { workspace = true }
+# jwt-simple = "0.12"
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+# http-body-util = "0.1.1"
+# sqlx-db-tester = "0.4.0"

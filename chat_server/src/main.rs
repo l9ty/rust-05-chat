@@ -12,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
     let console = tracing_subscriber::fmt::Layer::new().with_filter(LevelFilter::INFO);
     tracing_subscriber::registry().with(console).init();
 
-    let router = get_router(config)?;
+    let router = get_router(config).await?;
     info!("listening on {}", addr);
     axum::serve(listener, router).await?;
     Ok(())

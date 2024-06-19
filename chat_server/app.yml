@@ -1,7 +1,13 @@
 server:
   host: 0.0.0.0
-  port: 8888
-db_url: postgresql://postgres@182.92.209.5/chat
+  port: 8080
+  db_url: postgresql://postgres@182.92.209.5/chat
 auth:
-  sk: secret key
-  pk: public key
+  sk: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VwBCIEIGdNL9UA4NqKx4A+2VHy0AnjIL6HqMLMyRDDTjGXKWZm
+    -----END PRIVATE KEY-----
+  pk: |
+    -----BEGIN PUBLIC KEY-----
+    MCowBQYDK2VwAyEAh3m+6a6m4gDGlAFnH78GuU3lNfu3vjy0VErVrDVKghw=
+    -----END PUBLIC KEY-----

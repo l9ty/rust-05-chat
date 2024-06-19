@@ -7,8 +7,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+argon2 = "0.5.3"
 # argon2 = { version = "0.5", features = ["std"] }
 axum = { workspace = true }
+chrono = { workspace = true }
+jsonwebtoken = "9.3.0"
 # jwt-simple = "0.12"
 serde = { workspace = true }
 serde_yaml = { workspace = true }

@@ -13,6 +13,7 @@ pub struct AppConfig {
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+    pub db_url: String,
 }
 
 #[derive(Serialize, Deserialize)]

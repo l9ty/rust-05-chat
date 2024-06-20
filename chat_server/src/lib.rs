@@ -60,3 +60,37 @@ impl AppState {
         Ok(Self { inner })
     }
 }
+
+#[cfg(test)]
+impl AppState {
+    fn new_for_test(pool: PgPool) -> AppState {
+        let pk = include_str!("../fixtures/private.pem");
+        let sk = include_str!("../fixtures/public.pem");
+        let ek = JwtEncodingKey::load(pk.as_bytes()).unwrap();
+        let dk = JwtDecodingKey::load(sk.as_bytes()).unwrap();
+
+        AppState {
+            inner: Arc::new(AppStateInner {
+                config: AppConfig {
+                    server: config::ServerConfig {
+                        db_url: "".to_string(),
+                        host: "0.0.0.0".to_string(),
+                        port: 8080,
+                    },
+                    auth: config::AuthConfig {
+                        sk: sk.to_string(),
+                        pk: pk.to_string(),
+                    },
+                },
+                dk,
+                ek,
+                db: pool,
+            }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    pub(crate) static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../migrations");
+}

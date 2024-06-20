@@ -1,0 +1,23 @@
+@prefix = http://localhost:8080
+
+### index
+GET http://localhost:8080/
+
+### signup
+POST {{prefix}}/signup
+Content-Type: application/json
+
+{
+    "fullname": "zhangsan",
+    "email": "zhangsan@chat.rs",
+    "password": "123456"
+}
+
+### signin
+POST {{prefix}}/signin
+Content-Type: application/json
+
+{
+    "email": "zhangsan@chat.rs",
+    "password": "123456"
+}

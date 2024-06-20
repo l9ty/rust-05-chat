@@ -102,8 +102,8 @@ fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
 mod tests {
     use super::*;
     #[test]
-    fn test_hash_password() {
-        let password = "123456";
+    fn argon2_hash() {
+        let password = "123456laskjdlasjl";
         let hash = hash_password(password).unwrap();
         assert!(verify_password(password, &hash).unwrap());
     }

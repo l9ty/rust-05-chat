@@ -5,7 +5,6 @@ use argon2::{
     Argon2,
 };
 use serde::Deserialize;
-use sqlx::query_as;
 
 use crate::error::AppError;
 
@@ -13,12 +12,12 @@ use super::User;
 
 impl User {
     pub async fn create(pool: &sqlx::PgPool, input: &CreateUser) -> Result<User, AppError> {
-        // check email is exist
-        let user = query_as!(
-            User,
-            "SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1",
-            input.email
+        let user: Option<User> = sqlx::query_as(
+            r#"
+        SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1
+        "#,
         )
+        .bind(&input.email)
         .fetch_optional(pool)
         .await?;
 
@@ -28,16 +27,14 @@ impl User {
 
         let password_hash = hash_password(&input.password)?;
 
-        let user = query_as!(
-            User,
+        let user = sqlx::query_as(
             r#"
-            INSERT INTO users (fullname, email, password_hash) VALUES ($1, $2, $3)
-            RETURNING id, fullname, email, password_hash, create_at
-            "#,
-            input.fullname,
-            input.email,
-            password_hash
+        INSERT INTO users (fullname, email, password_hash) VALUES ($1, $2, $3)
+        RETURNING id, fullname, email, password_hash, create_at"#,
         )
+        .bind(&input.fullname)
+        .bind(&input.email)
+        .bind(&password_hash)
         .fetch_one(pool)
         .await?;
 
@@ -49,11 +46,12 @@ impl User {
         pool: &sqlx::PgPool,
         input: &SigninInput,
     ) -> Result<Option<User>, AppError> {
-        let user = query_as!(
-            User,
-            "SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1",
-            input.email
+        let user: Option<User> = sqlx::query_as(
+            r#"
+        SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1
+        "#,
         )
+        .bind(&input.email)
         .fetch_optional(pool)
         .await
         .map_err(AppError::SqlxError)?;
@@ -61,6 +59,7 @@ impl User {
         let Some(mut user) = user else {
             return Ok(None);
         };
+
         // clear password_hash
         let hash = mem::take(&mut user.password_hash);
         match verify_password(&input.password, &hash)? {

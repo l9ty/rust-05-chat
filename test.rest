@@ -16,6 +16,7 @@ POST {{prefix}}/signup
 }
 
 ### signin
+# @name signin
 POST {{prefix}}/signin
 {{jsonHeader}}
 
@@ -26,6 +27,7 @@ POST {{prefix}}/signin
 
 ### list chat
 GET {{apiPrefix}}/chat
+Authorization: Bearer {{signin.response.body.$.token}}
 
 ### create chat
 POST {{apiPrefix}}/chat

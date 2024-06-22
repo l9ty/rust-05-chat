@@ -1,18 +1,21 @@
 mod config;
 mod error;
 mod handlers;
+mod middlewares;
 mod models;
 mod utils;
 
 use std::{ops::Deref, sync::Arc};
 
 use axum::{
+    middleware::from_fn_with_state,
     routing::{get, patch, post},
     Router,
 };
 pub use config::AppConfig;
 use error::AppError;
 use handlers::*;
+use middlewares::verify_token;
 use sqlx::PgPool;
 use utils::{JwtDecodingKey, JwtEncodingKey};
 
@@ -40,7 +43,8 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
                 .post(send_message_handler)
                 .delete(delete_chat_handler),
         )
-        .route("/chat/:id/message", get(list_message_handler));
+        .route("/chat/:id/message", get(list_message_handler))
+        .layer(from_fn_with_state(state.clone(), verify_token));
 
     let root = Router::new()
         .route("/", get(index_handler))
@@ -49,7 +53,7 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
         .nest("/api", api)
         .with_state(state);
 
-    Ok(root)
+    Ok(middlewares::set_global_layer(root))
 }
 
 impl Deref for AppState {

@@ -14,7 +14,7 @@ pub enum AppError {
 
     #[error("jwt error: {0}")]
     JwtError(#[from] jsonwebtoken::errors::Error),
-    // todo using argon2 error cannot compile
+    // todo #[from] argon2 error cause compile error
     #[error("password hash error: {0}")]
     PasswordHashError(String),
 
@@ -38,7 +38,9 @@ impl IntoResponse for AppError {
 }
 
 impl RespError {
-    fn new(error: String) -> Self {
-        Self { error }
+    pub fn new(error: impl AsRef<str>) -> Self {
+        Self {
+            error: error.as_ref().to_string(),
+        }
     }
 }

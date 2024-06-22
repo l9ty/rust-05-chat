@@ -1,3 +1,4 @@
+use crate::error::RespError;
 use axum::{
     body::Body,
     extract::State,
@@ -32,7 +33,11 @@ pub async fn signin_handler(
 ) -> Result<Response<Body>, AppError> {
     let user = User::signin(&state.db, &input).await?;
     let Some(user) = user else {
-        return Ok((StatusCode::FORBIDDEN, "email or password is wrong").into_response());
+        return Ok((
+            StatusCode::FORBIDDEN,
+            Json(RespError::new("invalid email or password")),
+        )
+            .into_response());
     };
     let token = state.ek.sign(user.id)?;
     Ok(Json(SigninOutput { token }).into_response())

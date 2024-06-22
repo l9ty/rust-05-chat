@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS chats (
     name VARCHAR(64) NOT NULL,
     type chat_type NOT NULL,
     members bigint[] NOT NULL,
-    create_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    create_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     images text[],
-    create_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    create_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS chat_id_create_at_index ON messages(chat_id, create_at DESC);

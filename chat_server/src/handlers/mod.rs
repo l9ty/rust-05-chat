@@ -1,8 +1,13 @@
 use axum::response::IntoResponse;
 
 mod auth;
-pub use auth::{signin_handler, singup_handler};
+mod chat;
+mod message;
 
-pub(crate) async fn index_handler() -> impl IntoResponse {
+pub use auth::*;
+pub use chat::*;
+pub use message::*;
+
+pub async fn index_handler() -> impl IntoResponse {
     "index"
 }

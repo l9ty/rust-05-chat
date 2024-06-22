@@ -7,7 +7,7 @@ mod utils;
 use std::{ops::Deref, sync::Arc};
 
 use axum::{
-    routing::{get, post},
+    routing::{get, patch, post},
     Router,
 };
 pub use config::AppConfig;
@@ -31,11 +31,24 @@ pub(crate) struct AppStateInner {
 
 pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
     let state = AppState::try_new(config).await?;
+
+    let api = Router::new()
+        .route("/chat", get(list_chat_handler).post(create_chat_handler))
+        .route(
+            "/chat/:id",
+            patch(update_chat_handler)
+                .post(send_message_handler)
+                .delete(delete_chat_handler),
+        )
+        .route("/chat/:id/message", get(list_message_handler));
+
     let root = Router::new()
         .route("/", get(index_handler))
         .route("/signup", post(singup_handler))
         .route("/signin", post(signin_handler))
+        .nest("/api", api)
         .with_state(state);
+
     Ok(root)
 }
 

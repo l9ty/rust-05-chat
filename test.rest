@@ -1,11 +1,13 @@
 @prefix = http://localhost:8080
+@apiPrefix = {{prefix}}/api
+@jsonHeader = Content-Type: application/json
 
 ### index
 GET http://localhost:8080/
 
 ### signup
 POST {{prefix}}/signup
-Content-Type: application/json
+{{jsonHeader}}
 
 {
     "fullname": "zhangsan",
@@ -15,9 +17,24 @@ Content-Type: application/json
 
 ### signin
 POST {{prefix}}/signin
-Content-Type: application/json
+{{jsonHeader}}
 
 {
     "email": "zhangsan@chat.rs",
     "password": "123456"
 }
+
+### list chat
+GET {{apiPrefix}}/chat
+
+### create chat
+POST {{apiPrefix}}/chat
+{{jsonHeader}}
+
+### update chat
+PATCH {{apiPrefix}}/chat/1
+{{jsonHeader}}
+
+### send message
+POST {{apiPrefix}}/chat/1
+{{jsonHeader}}

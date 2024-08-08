@@ -4,8 +4,8 @@ resolver = "2"
 
 [workspace.dependencies]
 anyhow = "1"
-chrono = { version = "0.4", features = ["serde"] }
-axum = { version = "0.7", features = ["http2", "query", "tracing", "multipart"] }
+chrono = { version = "0.4", features = ["serde"], default-features = false }
+axum = { version = "0.7", features = ["http2", "query", "tracing", "multipart", "macros"] }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = { version = "0.9" }
 sqlx = { version = "0.8", features = [
@@ -25,4 +25,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tower-http = { version = "0.5.2", features = ["compression-br", "compression-deflate", "compression-gzip", "trace", "request-id"] }
 tower = "0.4.13"
-axum-extra = { version = "0.9.3", features = ["typed-header"] }
+axum-extra = { version = "0.9.3", features = ["typed-header"]}

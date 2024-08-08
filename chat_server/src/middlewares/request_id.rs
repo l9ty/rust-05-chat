@@ -1,34 +1,15 @@
-use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
+use axum::{extract::Request, http::HeaderValue};
 
-use tracing::warn;
+use tower_http::request_id::{MakeRequestId, RequestId};
 use uuid::Uuid;
 
-use super::REQUEST_ID_HEADER;
+// Layer must implement Clone
+#[derive(Clone)]
+pub struct RequestIdMaker;
 
-pub async fn set_request_id(mut request: Request, next: Next) -> Response {
-    let rid = match request.headers().get(REQUEST_ID_HEADER) {
-        Some(rid) => Some(rid.clone()),
-        None => {
-            let uid = Uuid::now_v7().to_string();
-            match HeaderValue::from_str(&uid) {
-                Ok(rid) => {
-                    request.headers_mut().insert(REQUEST_ID_HEADER, rid.clone());
-                    Some(rid)
-                }
-                Err(e) => {
-                    warn!("cannot generate request id: {}", e);
-                    None
-                }
-            }
-        }
-    };
-
-    let mut resp = next.run(request).await;
-
-    let Some(rid) = rid else {
-        return resp;
-    };
-
-    resp.headers_mut().insert(REQUEST_ID_HEADER, rid);
-    resp
+impl MakeRequestId for RequestIdMaker {
+    fn make_request_id<B>(&mut self, _request: &Request<B>) -> Option<RequestId> {
+        let uid = Uuid::now_v7().to_string();
+        HeaderValue::from_str(&uid).ok().map(RequestId::new)
+    }
 }

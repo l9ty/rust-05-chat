@@ -1,7 +1,7 @@
-use axum::response::IntoResponse;
+use axum::{response::IntoResponse, Extension};
 
-pub async fn list_chat_handler() -> impl IntoResponse {
-    "list chat"
+pub async fn list_chat_handler(Extension(uid): Extension<i64>) -> impl IntoResponse {
+    format!("list chat {}", uid)
 }
 
 pub async fn create_chat_handler() -> impl IntoResponse {

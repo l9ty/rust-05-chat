@@ -31,6 +31,7 @@ Authorization: Bearer {{signin.response.body.$.token}}
 
 ### create chat
 POST {{apiPrefix}}/chat
+Authorization: Bearer {{signin.response.body.$.token}}
 {{jsonHeader}}
 
 ### update chat

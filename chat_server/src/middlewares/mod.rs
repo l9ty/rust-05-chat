@@ -2,23 +2,29 @@ mod auth;
 mod request_id;
 mod server_time;
 
-use axum::{middleware::from_fn, Router};
+use axum::Router;
+use http::HeaderName;
+use request_id::RequestIdMaker;
 use server_time::ServerTimeLayer;
 use tower_http::{
     compression::CompressionLayer,
+    request_id::{PropagateRequestIdLayer, SetRequestIdLayer},
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
 
 pub use auth::verify_token;
-use request_id::set_request_id;
+// use request_id::set_request_id;
 use tower::ServiceBuilder;
 use tracing::Level;
 
-pub const REQUEST_ID_HEADER: &str = "X-Request-Id";
-pub const SERVER_TIME_HEADER: &str = "X-Server-Time";
+pub const REQUEST_ID_HEADER: &str = "x-request-id";
+pub const SERVER_TIME_HEADER: &str = "x-server-time";
 
 pub fn set_global_layer(app: Router) -> Router {
+    // NOTE header chars h2 require lowercase header
+    let x_request_id = HeaderName::from_static(REQUEST_ID_HEADER);
+
     let service = ServiceBuilder::new()
         .layer(
             TraceLayer::new_for_http()
@@ -31,7 +37,8 @@ pub fn set_global_layer(app: Router) -> Router {
                 ),
         )
         .layer(CompressionLayer::new().gzip(true).br(true).deflate(true))
-        .layer(from_fn(set_request_id))
+        .layer(SetRequestIdLayer::new(x_request_id.clone(), RequestIdMaker))
+        .layer(PropagateRequestIdLayer::new(x_request_id))
         .layer(ServerTimeLayer);
     app.layer(service)
 }

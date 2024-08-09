@@ -26,9 +26,9 @@ mod tests {
     async fn list_users_should_work(pool: sqlx::PgPool) {
         // TODO insert more users
         let state = AppState::new_for_test(pool);
-        let res = list_users(Extension(Default::default()), State(state)).await;
-        assert!(res.is_ok());
-        let res = res.unwrap();
+        let res = list_users(Extension(Default::default()), State(state))
+            .await
+            .unwrap();
         assert!(res.status().is_success());
         let body = res.into_body().collect().await.unwrap().to_bytes();
         let users = serde_json::from_slice::<Vec<User>>(&body).unwrap();

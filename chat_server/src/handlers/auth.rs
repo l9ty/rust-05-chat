@@ -1,4 +1,3 @@
-use crate::error::RespError;
 use axum::{
     body::Body,
     extract::State,
@@ -7,6 +6,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{
     error::AppError,
@@ -35,7 +35,9 @@ pub async fn signin_handler(
     let Some(user) = user else {
         return Ok((
             StatusCode::FORBIDDEN,
-            Json(RespError::new("invalid email or password")),
+            Json(json!({
+                "error": "invalid email or password"
+            })),
         )
             .into_response());
     };
@@ -81,7 +83,7 @@ mod tests {
             password: "123".to_string(),
         };
         let res = singup_handler(State(state.clone()), Json(input)).await;
-        matches!(res, Err(AppError::UserAlreadyExist));
+        matches!(res, Err(AppError::EntityExist(_)));
 
         // sigin with exist email
         let input = SigninInput {

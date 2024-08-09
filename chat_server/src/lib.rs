@@ -13,7 +13,6 @@ use axum::{
     Router,
 };
 pub use config::AppConfig;
-use error::AppError;
 use handlers::*;
 use middlewares::verify_token;
 use sqlx::PgPool;
@@ -65,7 +64,7 @@ impl Deref for AppState {
 }
 
 impl AppState {
-    pub async fn try_new(config: AppConfig) -> anyhow::Result<Self, AppError> {
+    pub async fn try_new(config: AppConfig) -> anyhow::Result<Self> {
         let dk = JwtDecodingKey::load(config.auth.pk.as_bytes())?;
         let ek = JwtEncodingKey::load(config.auth.sk.as_bytes())?;
         let pool = PgPool::connect(&config.server.db_url).await?;

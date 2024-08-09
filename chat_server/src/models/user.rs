@@ -1,5 +1,6 @@
 use std::mem;
 
+use anyhow::anyhow;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
@@ -22,7 +23,7 @@ impl User {
         .await?;
 
         if user.is_some() {
-            return Err(AppError::UserAlreadyExist);
+            return Err(AppError::EntityExist("User".to_string()));
         }
 
         let password_hash = hash_password(&input.password)?;
@@ -53,8 +54,7 @@ impl User {
         )
         .bind(&input.email)
         .fetch_optional(pool)
-        .await
-        .map_err(AppError::SqlxError)?;
+        .await?;
 
         let Some(mut user) = user else {
             return Ok(None);
@@ -82,17 +82,17 @@ pub struct CreateUser {
     pub password: String,
 }
 
-fn hash_password(password: &str) -> Result<String, AppError> {
+fn hash_password(password: &str) -> anyhow::Result<String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
     argon2
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| AppError::PasswordHashError(e.to_string()))
+        .map_err(|e| anyhow!("password hash error: {}", e))
         .map(|hash| hash.to_string())
 }
 
-fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
-    let hash = PasswordHash::new(hash).map_err(|e| AppError::PasswordHashError(e.to_string()))?;
+fn verify_password(password: &str, hash: &str) -> anyhow::Result<bool> {
+    let hash = PasswordHash::new(hash).map_err(|e| anyhow!("password hash error: {}", e))?;
     let argon2 = Argon2::default();
     Ok(argon2.verify_password(password.as_bytes(), &hash).is_ok())
 }

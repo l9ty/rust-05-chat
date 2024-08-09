@@ -3,10 +3,7 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    error::AppError,
-    models::{RowID, User},
-};
+use crate::models::{RowID, User};
 
 pub struct JwtEncodingKey {
     ek: EncodingKey,
@@ -25,13 +22,13 @@ pub struct UserCliams {
 }
 
 impl JwtEncodingKey {
-    pub fn load(sk: &[u8]) -> Result<Self, AppError> {
+    pub fn load(sk: &[u8]) -> anyhow::Result<Self> {
         let sk = EncodingKey::from_ed_pem(sk)?;
         let header = Header::new(Algorithm::EdDSA);
         Ok(JwtEncodingKey { ek: sk, header })
     }
 
-    pub fn sign(&self, user: &UserCliams) -> Result<String, AppError> {
+    pub fn sign(&self, user: &UserCliams) -> anyhow::Result<String> {
         let cliams = Cliams::new(user);
         let token = jsonwebtoken::encode(&self.header, &cliams, &self.ek)?;
         Ok(token)
@@ -39,7 +36,7 @@ impl JwtEncodingKey {
 }
 
 impl JwtDecodingKey {
-    pub fn load(pk: &[u8]) -> Result<Self, AppError> {
+    pub fn load(pk: &[u8]) -> anyhow::Result<Self> {
         let pk = DecodingKey::from_ed_pem(pk)?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::EdDSA);
         validation.set_audience(&[JWT_AUD]);
@@ -48,7 +45,7 @@ impl JwtDecodingKey {
         Ok(JwtDecodingKey { dk: pk, validation })
     }
 
-    pub fn verify(&self, token: &str) -> Result<UserCliams, AppError> {
+    pub fn verify(&self, token: &str) -> anyhow::Result<UserCliams> {
         let cliams = jsonwebtoken::decode::<Cliams>(token, &self.dk, &self.validation)?;
         Ok(cliams.claims.into())
     }

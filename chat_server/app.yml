@@ -1,7 +1,7 @@
 server:
   host: 0.0.0.0
   port: 8080
-  db_url: postgresql://postgres@182.92.209.5/chat
+  db_url: postgres://postgres:postgres@localhost/chat-dev
 auth:
   sk: |
     -----BEGIN PRIVATE KEY-----

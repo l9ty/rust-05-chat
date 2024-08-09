@@ -60,7 +60,7 @@ mod test {
             .route("/", get(index_handler))
             .layer(from_fn_with_state(state.clone(), verify_token));
 
-        let token = state.ek.sign(1)?;
+        let token = state.ek.sign(&Default::default())?;
 
         // good token
         let req = Request::builder()

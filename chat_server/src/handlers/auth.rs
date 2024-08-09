@@ -22,7 +22,7 @@ pub async fn singup_handler(
     Json(input): Json<CreateUser>,
 ) -> Result<Response<Body>, AppError> {
     let user = User::create(&state.db, &input).await?;
-    let token = state.ek.sign(user.id)?;
+    let token = state.ek.sign(&user.into())?;
     let body = SigninOutput { token };
     Ok((StatusCode::CREATED, Json(body)).into_response())
 }
@@ -39,7 +39,7 @@ pub async fn signin_handler(
         )
             .into_response());
     };
-    let token = state.ek.sign(user.id)?;
+    let token = state.ek.sign(&user.into())?;
     Ok(Json(SigninOutput { token }).into_response())
 }
 

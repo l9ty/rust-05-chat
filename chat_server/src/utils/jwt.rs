@@ -3,7 +3,10 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::error::AppError;
+use crate::{
+    error::AppError,
+    models::{RowID, User},
+};
 
 pub struct JwtEncodingKey {
     ek: EncodingKey,
@@ -15,7 +18,11 @@ pub struct JwtDecodingKey {
     validation: Validation,
 }
 
-type UserId = i64;
+#[derive(Clone, Default)]
+pub struct UserCliams {
+    pub uid: RowID,
+    pub ws_id: RowID,
+}
 
 impl JwtEncodingKey {
     pub fn load(sk: &[u8]) -> Result<Self, AppError> {
@@ -24,8 +31,8 @@ impl JwtEncodingKey {
         Ok(JwtEncodingKey { ek: sk, header })
     }
 
-    pub fn sign(&self, uid: UserId) -> Result<String, AppError> {
-        let cliams = Cliams::new(uid);
+    pub fn sign(&self, user: &UserCliams) -> Result<String, AppError> {
+        let cliams = Cliams::new(user);
         let token = jsonwebtoken::encode(&self.header, &cliams, &self.ek)?;
         Ok(token)
     }
@@ -41,10 +48,9 @@ impl JwtDecodingKey {
         Ok(JwtDecodingKey { dk: pk, validation })
     }
 
-    #[allow(unused)]
-    pub fn verify(&self, token: &str) -> Result<UserId, AppError> {
+    pub fn verify(&self, token: &str) -> Result<UserCliams, AppError> {
         let cliams = jsonwebtoken::decode::<Cliams>(token, &self.dk, &self.validation)?;
-        Ok(cliams.claims.uid)
+        Ok(cliams.claims.into())
     }
 }
 
@@ -53,7 +59,8 @@ struct Cliams {
     iss: String,
     aud: String,
     exp: u64,
-    uid: i64,
+    uid: RowID,
+    ws_id: RowID,
 }
 
 const JWT_DURATION: u64 = 3600 * 24 * 7;
@@ -62,12 +69,31 @@ const JWT_AUD: &str = "chat_web";
 
 impl Cliams {
     #[inline]
-    fn new(uid: UserId) -> Self {
+    fn new(user: &UserCliams) -> Self {
         Self {
             iss: JWT_ISS.to_string(),
             aud: JWT_AUD.to_string(),
             exp: get_current_timestamp() + JWT_DURATION,
-            uid,
+            uid: user.uid,
+            ws_id: user.ws_id,
+        }
+    }
+}
+
+impl From<Cliams> for UserCliams {
+    fn from(value: Cliams) -> Self {
+        UserCliams {
+            uid: value.uid,
+            ws_id: value.ws_id,
+        }
+    }
+}
+
+impl From<User> for UserCliams {
+    fn from(user: User) -> Self {
+        UserCliams {
+            uid: user.id,
+            ws_id: user.ws_id,
         }
     }
 }
@@ -83,8 +109,8 @@ mod tests {
     fn sign_and_verify() {
         let ek = JwtEncodingKey::load(EK).unwrap();
         let dk = JwtDecodingKey::load(DK).unwrap();
-        let token = ek.sign(1).unwrap();
-        let uid = dk.verify(&token).unwrap();
-        assert_eq!(uid, 1);
+        let token = ek.sign(&Default::default()).unwrap();
+        let user = dk.verify(&token).unwrap();
+        assert_eq!(user.uid, RowID::default());
     }
 }

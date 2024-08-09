@@ -14,7 +14,7 @@ impl User {
     pub async fn create(pool: &sqlx::PgPool, input: &CreateUser) -> Result<User, AppError> {
         let user: Option<User> = sqlx::query_as(
             r#"
-        SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1
+        SELECT id, fullname, email, password_hash, ws_id, created_at FROM users WHERE email = $1
         "#,
         )
         .bind(&input.email)
@@ -29,8 +29,8 @@ impl User {
 
         let user = sqlx::query_as(
             r#"
-        INSERT INTO users (fullname, email, password_hash) VALUES ($1, $2, $3)
-        RETURNING id, fullname, email, password_hash, create_at"#,
+        INSERT INTO users (fullname, email, password_hash, ws_id) VALUES ($1, $2, $3, 0)
+        RETURNING id, fullname, email, password_hash, ws_id, created_at"#,
         )
         .bind(&input.fullname)
         .bind(&input.email)
@@ -48,7 +48,7 @@ impl User {
     ) -> Result<Option<User>, AppError> {
         let user: Option<User> = sqlx::query_as(
             r#"
-        SELECT id, fullname, email, password_hash, create_at FROM users WHERE email = $1
+        SELECT id, fullname, email, password_hash, ws_id, created_at FROM users WHERE email = $1
         "#,
         )
         .bind(&input.email)

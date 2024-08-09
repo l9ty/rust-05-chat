@@ -36,6 +36,7 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
     let state = AppState::try_new(config).await?;
 
     let api = Router::new()
+        .route("/users", get(list_users))
         .route("/chat", get(list_chat_handler).post(create_chat_handler))
         .route(
             "/chat/:id",

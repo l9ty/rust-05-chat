@@ -56,7 +56,7 @@ mod tests {
     use crate::tests::MIGRATOR;
 
     #[sqlx::test(migrator = "MIGRATOR")]
-    async fn signin_signup(pool: sqlx::PgPool) {
+    async fn t_signup_signin(pool: sqlx::PgPool) {
         let state = AppState::new_for_test(pool);
 
         // sigin with non exist email

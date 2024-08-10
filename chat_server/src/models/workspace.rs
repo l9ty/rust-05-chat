@@ -70,7 +70,7 @@ mod tests {
     use crate::tests::MIGRATOR;
 
     #[sqlx::test(migrator = "MIGRATOR")]
-    async fn create(pool: PgPool) {
+    async fn t_create(pool: PgPool) {
         // find by id should return none
         let ret = Workspace::find_by_id(&pool, 1).await.unwrap();
         assert!(ret.is_none());

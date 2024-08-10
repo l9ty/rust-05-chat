@@ -2,6 +2,7 @@
 @apiPrefix = {{prefix}}/api
 @jsonHeader = Content-Type: application/json
 
+
 ### index
 GET http://localhost:8080/
 
@@ -21,9 +22,14 @@ POST {{prefix}}/signin
 {{jsonHeader}}
 
 {
-    "email": "zhangsan@chat.rs",
+    "email": "user-1@a.com",
     "password": "123456"
 }
+
+### list worksapce user
+GET {{apiPrefix}}/users
+Authorization: Bearer {{signin.response.body.$.token}}
+{{jsonHeader}}
 
 ### list chat
 GET {{apiPrefix}}/chat
@@ -33,6 +39,12 @@ Authorization: Bearer {{signin.response.body.$.token}}
 POST {{apiPrefix}}/chat
 Authorization: Bearer {{signin.response.body.$.token}}
 {{jsonHeader}}
+
+{
+    "name": "test-chat",
+    "members": [0, 1],
+    "public": false
+}
 
 ### update chat
 PATCH {{apiPrefix}}/chat/1

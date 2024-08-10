@@ -1,6 +1,6 @@
 use std::mem;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
@@ -20,7 +20,8 @@ impl User {
         )
         .bind(&input.email)
         .fetch_optional(pool)
-        .await?;
+        .await
+        .context("find user failed")?;
 
         if user.is_some() {
             return Err(AppError::EntityExist("User".to_string()));
@@ -37,7 +38,8 @@ impl User {
         .bind(&input.email)
         .bind(&password_hash)
         .fetch_one(pool)
-        .await?;
+        .await
+        .context("create user failed")?;
 
         Ok(user)
     }
@@ -100,10 +102,26 @@ fn verify_password(password: &str, hash: &str) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::PgPool;
+
     #[test]
-    fn argon2_hash() {
+    fn t_argon2_hash() {
         let password = "123456laskjdlasjl";
         let hash = hash_password(password).unwrap();
         assert!(verify_password(password, &hash).unwrap());
+    }
+
+    #[sqlx::test(migrator = "crate::tests::MIGRATOR")]
+    async fn t_create(pool: PgPool) {
+        let input = CreateUser {
+            fullname: "test".to_string(),
+            email: "b@a.com".to_string(),
+            password: "123456".to_string(),
+        };
+
+        let user = User::create(&pool, &input).await.unwrap();
+        assert_eq!(user.fullname, input.fullname);
+        assert_eq!(user.email, input.email);
+        assert!(verify_password(&input.password, &user.password_hash).unwrap());
     }
 }

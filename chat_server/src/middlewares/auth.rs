@@ -53,8 +53,8 @@ mod test {
         "hello"
     }
 
-    #[sqlx::test]
-    async fn verify_token_should_work(pool: sqlx::PgPool) -> anyhow::Result<()> {
+    #[sqlx::test(migrator = "crate::tests::MIGRATOR")]
+    async fn t_verify_token(pool: sqlx::PgPool) -> anyhow::Result<()> {
         let state = AppState::new_for_test(pool);
         let router = Router::new()
             .route("/", get(index_handler))

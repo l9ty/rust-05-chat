@@ -1,3 +1,4 @@
+pub mod chat;
 pub mod user;
 pub mod workspace;
 
@@ -7,7 +8,7 @@ use sqlx::prelude::FromRow;
 
 pub type RowID = i64;
 
-#[derive(FromRow, Serialize, Deserialize)]
+#[derive(Clone, FromRow, Serialize, Deserialize)]
 pub struct User {
     pub id: RowID,
     pub fullname: String,
@@ -18,10 +19,31 @@ pub struct User {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(FromRow, Serialize, Deserialize)]
+#[derive(Clone, FromRow, Serialize, Deserialize)]
 pub struct Workspace {
     pub id: RowID,
     pub name: String,
     pub owner_id: RowID,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Clone, FromRow, Serialize, Deserialize)]
+pub struct Chat {
+    pub id: RowID,
+    pub ws_id: RowID,
+    pub name: Option<String>,
+    #[sqlx(rename = "type")]
+    #[serde(rename = "type")]
+    pub typ: ChatType,
+    pub members: Vec<RowID>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "chat_type", rename_all = "snake_case")]
+pub enum ChatType {
+    Single,
+    Group,
+    PrivateChannel,
+    PublicChannel,
 }

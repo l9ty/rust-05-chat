@@ -7,7 +7,7 @@ use axum::{
 
 use crate::{error::AppError, models::Workspace, utils::UserCliams, AppState};
 
-pub async fn list_users(
+pub async fn list_ws_users_handler(
     Extension(user): Extension<UserCliams>,
     State(state): State<AppState>,
 ) -> Result<Response<Body>, AppError> {
@@ -23,10 +23,9 @@ mod tests {
     use crate::{models::User, tests::MIGRATOR};
 
     #[sqlx::test(migrator = "MIGRATOR")]
-    async fn list_users_should_work(pool: sqlx::PgPool) {
-        // TODO insert more users
+    async fn t_list_ws_users(pool: sqlx::PgPool) {
         let state = AppState::new_for_test(pool);
-        let res = list_users(Extension(Default::default()), State(state))
+        let res = list_ws_users_handler(Extension(Default::default()), State(state))
             .await
             .unwrap();
         assert!(res.status().is_success());

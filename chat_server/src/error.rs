@@ -5,8 +5,11 @@ use axum::{
 use http::StatusCode;
 use serde_json::json;
 
+pub type AppResult<T> = Result<T, AppError>;
+
 #[derive(Debug)]
 pub enum AppError {
+    InvalidInput(String),
     EntityExist(String),
     Any(anyhow::Error),
 }
@@ -23,9 +26,11 @@ where
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (code, err) = match self {
-            AppError::EntityExist(err) => {
-                (StatusCode::UNPROCESSABLE_ENTITY, format!("{err} exists"))
-            }
+            AppError::InvalidInput(err) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                format!("invalid input: {err}"),
+            ),
+            AppError::EntityExist(err) => (StatusCode::CONFLICT, format!("{err} exists")),
             AppError::Any(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
         };
 

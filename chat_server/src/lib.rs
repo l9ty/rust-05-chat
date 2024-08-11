@@ -37,14 +37,13 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
     let api = Router::new()
         .route("/users", get(list_ws_users_handler))
         .route("/chat", get(list_chat_handler).post(create_chat_handler))
+        .route("/chat/:id", get(get_chat_handler))
         .route(
-            "/chat/:id",
-            get(get_chat_handler)
-                .patch(update_chat_handler)
-                .post(send_message_handler)
-                .delete(delete_chat_handler),
+            "/chat/:id/message",
+            get(list_message_handler).put(send_message_handler),
         )
-        .route("/chat/:id/message", get(list_message_handler))
+        .route("/upload", post(upload_file_handler))
+        .route("/files/*path", get(download_file_handler))
         .layer(from_fn_with_state(state.clone(), verify_token));
 
     let root = Router::new()
@@ -98,6 +97,7 @@ impl AppState {
                         sk: sk.to_string(),
                         pk: pk.to_string(),
                     },
+                    base_dir: "./log".to_string(),
                 },
                 dk,
                 ek,

@@ -1,6 +1,5 @@
 use axum::{
     extract::{Path, State},
-    response::IntoResponse,
     Extension, Json,
 };
 
@@ -34,16 +33,4 @@ pub async fn get_chat_handler(
 ) -> AppResult<Json<Chat>> {
     let chat = Chat::get(&state.db, id).await?;
     Ok(Json(chat))
-}
-
-pub async fn update_chat_handler() -> impl IntoResponse {
-    "update chat"
-}
-
-pub async fn delete_chat_handler() -> impl IntoResponse {
-    "delete chat"
-}
-
-pub async fn send_message_handler() -> impl IntoResponse {
-    "send message"
 }

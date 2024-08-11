@@ -11,3 +11,4 @@ auth:
     -----BEGIN PUBLIC KEY-----
     MCowBQYDK2VwAyEAh3m+6a6m4gDGlAFnH78GuU3lNfu3vjy0VErVrDVKghw=
     -----END PUBLIC KEY-----
+base_dir: log

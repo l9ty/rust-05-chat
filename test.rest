@@ -17,7 +17,7 @@ POST {{prefix}}/signup
 }
 
 ### signin
-# @name signin
+# @name user1Signin
 POST {{prefix}}/signin
 {{jsonHeader}}
 
@@ -26,18 +26,28 @@ POST {{prefix}}/signin
     "password": "123456"
 }
 
+### signin
+# @name user2Signin
+POST {{prefix}}/signin
+{{jsonHeader}}
+
+{
+    "email": "user-2@a.com",
+    "password": "123456"
+}
+
 ### list worksapce user
 GET {{apiPrefix}}/users
-Authorization: Bearer {{signin.response.body.$.token}}
+Authorization: Bearer {{user1Signin.response.body.$.token}}
 {{jsonHeader}}
 
 ### list chat
 GET {{apiPrefix}}/chat
-Authorization: Bearer {{signin.response.body.$.token}}
+Authorization: Bearer {{user1Signin.response.body.$.token}}
 
 ### create chat
 POST {{apiPrefix}}/chat
-Authorization: Bearer {{signin.response.body.$.token}}
+Authorization: Bearer {{user1Signin.response.body.$.token}}
 {{jsonHeader}}
 
 {
@@ -51,5 +61,15 @@ PATCH {{apiPrefix}}/chat/1
 {{jsonHeader}}
 
 ### send message
-POST {{apiPrefix}}/chat/1
+PUT {{apiPrefix}}/chat/1/message
 {{jsonHeader}}
+Authorization: Bearer {{user1Signin.response.body.$.token}}
+
+{
+    "content": "aaa"
+}
+
+### List message
+GET {{apiPrefix}}/chat/1/message?limit=10
+{{jsonHeader}}
+Authorization: Bearer {{user1Signin.response.body.$.token}}

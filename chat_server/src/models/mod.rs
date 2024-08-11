@@ -1,4 +1,5 @@
 pub mod chat;
+pub mod message;
 pub mod user;
 pub mod workspace;
 
@@ -46,4 +47,14 @@ pub enum ChatType {
     Group,
     PrivateChannel,
     PublicChannel,
+}
+
+#[derive(Clone, FromRow, Serialize, Deserialize)]
+pub struct Message {
+    pub id: RowID,
+    pub chat_id: RowID,
+    pub sender_id: RowID,
+    pub content: String,
+    pub files: Vec<String>,
+    pub created_at: DateTime<Utc>,
 }

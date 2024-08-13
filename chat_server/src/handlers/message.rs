@@ -1,9 +1,8 @@
-use std::path::Path as StdPath;
+use std::{io, path::Path as StdPath};
 
 use anyhow::Context;
 use axum::{
     extract::{Multipart, Path, Query, State},
-    response::IntoResponse,
     Extension, Json,
 };
 use tokio::fs;
@@ -12,7 +11,7 @@ use crate::{
     error::{AppError, AppResult},
     models::{
         message::{CreateMessage, ListMessage},
-        Message, RowID,
+        ChatFile, Message, RowID,
     },
     utils::UserCliams,
     AppState,
@@ -50,26 +49,22 @@ pub async fn upload_file_handler(
         let Some(filename) = field.file_name() else {
             continue;
         };
-        let filename = filename.to_string();
-        let data = field.bytes().await?;
-
         if filename.is_empty() || filename.contains('/') {
             continue;
         }
+        let filename = filename.to_owned();
+        let data = field.bytes().await?;
+        let chat_file = ChatFile::new(user.ws_id, &filename, &data);
+        let path = chat_file.path(base);
 
-        let path = base.join(user.ws_id.to_string()).join(&filename);
         if !path.exists() {
-            let Some(dir) = path.parent() else {
-                continue;
-            };
-            fs::create_dir_all(dir)
+            fs::create_dir_all(path.parent().unwrap_or(base))
                 .await
-                .with_context(|| format!("create dir: {:?}", dir))?;
+                .with_context(|| format!("create dir: {:?}", &path))?;
             fs::write(&path, data)
                 .await
                 .with_context(|| format!("write file: {:?}", &path))?;
-
-            files.push(filename);
+            files.push(chat_file.url());
         }
     }
 
@@ -79,18 +74,18 @@ pub async fn upload_file_handler(
 pub async fn download_file_handler(
     State(state): State<AppState>,
     Extension(user): Extension<UserCliams>,
-    Path(file): Path<String>,
-) -> AppResult<impl IntoResponse> {
+    Path(file_url): Path<String>,
+) -> AppResult<Vec<u8>> {
     let base = StdPath::new(&state.config.base_dir);
-    let path = base.join(user.ws_id.to_string()).join(&file);
-    if !path.exists() {
-        return Err(AppError::NotFound(format!("file not found: {}", &file)));
+    let file = ChatFile::from_url(&file_url)?;
+    if file.ws_id != user.ws_id {
+        return Err(AppError::not_found("file not found"));
     }
-
-    let data = fs::read(&path)
-        .await
-        .with_context(|| format!("read file: {:?}", &path))?;
-
+    let fs_path = file.path(base);
+    let data = fs::read(&fs_path).await.map_err(|e| match e.kind() {
+        io::ErrorKind::NotFound => AppError::not_found("file not found"),
+        _ => AppError::any(e),
+    })?;
     Ok(data)
 }
 

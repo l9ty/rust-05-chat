@@ -83,7 +83,7 @@ mod tests {
             password: "123".to_string(),
         };
         let res = singup_handler(State(state.clone()), Json(input)).await;
-        matches!(res, Err(AppError::EntityExist(_)));
+        matches!(res, Err(AppError::AlreadyExist(_)));
 
         // sigin with exist email
         let input = SigninInput {

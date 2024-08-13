@@ -18,13 +18,11 @@ pub struct CreateChat {
 impl Chat {
     pub async fn create(pool: &PgPool, ws_id: RowID, input: CreateChat) -> AppResult<Chat> {
         if input.members.len() < 2 {
-            return Err(AppError::InvalidInput(
-                "chat must have at least 2 members".to_string(),
-            ));
+            return Err(AppError::invalid_input("chat must have at least 2 members"));
         }
         if input.members.len() > 5 && input.name.is_some() {
-            return Err(AppError::InvalidInput(
-                "group chat with more than 5 members must have a name".to_string(),
+            return Err(AppError::invalid_input(
+                "group chat with more than 5 members must have a name",
             ));
         }
 
@@ -34,9 +32,7 @@ impl Chat {
             .fetch_all(pool)
             .await?;
         if rows.len() != input.members.len() {
-            return Err(AppError::InvalidInput(
-                "some members do not exist".to_string(),
-            ));
+            return Err(AppError::invalid_input("some members don't exist"));
         }
 
         let typ = match (&input.name, input.members.len()) {
@@ -89,6 +85,15 @@ impl Chat {
             .fetch_one(pool)
             .await?;
         Ok(chat)
+    }
+
+    pub async fn is_member(pool: &PgPool, chat_id: RowID, uid: RowID) -> AppResult<bool> {
+        let ret = sqlx::query("SELECT 1 FROM chats WHERE id = $1 AND $2 = ANY(members)")
+            .bind(chat_id)
+            .bind(uid)
+            .fetch_optional(pool)
+            .await?;
+        Ok(ret.is_some())
     }
 }
 

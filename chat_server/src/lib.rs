@@ -14,7 +14,7 @@ use axum::{
 };
 pub use config::AppConfig;
 use handlers::*;
-use middlewares::verify_token;
+use middlewares::{ensure_chat_member, verify_token};
 use sqlx::PgPool;
 use utils::{JwtDecodingKey, JwtEncodingKey};
 
@@ -34,16 +34,20 @@ pub(crate) struct AppStateInner {
 pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
     let state = AppState::try_new(config).await?;
 
-    let api = Router::new()
-        .route("/users", get(list_ws_users_handler))
-        .route("/chat", get(list_chat_handler).post(create_chat_handler))
+    let chat = Router::new()
         .route("/chat/:id", get(get_chat_handler))
         .route(
             "/chat/:id/message",
             get(list_message_handler).put(send_message_handler),
         )
+        .layer(from_fn_with_state(state.clone(), ensure_chat_member))
+        .route("/chat", get(list_chat_handler).post(create_chat_handler));
+
+    let api = Router::new()
+        .route("/users", get(list_ws_users_handler))
         .route("/upload", post(upload_file_handler))
         .route("/files/*path", get(download_file_handler))
+        .nest("", chat)
         .layer(from_fn_with_state(state.clone(), verify_token));
 
     let root = Router::new()

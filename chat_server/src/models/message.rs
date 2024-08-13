@@ -76,22 +76,16 @@ impl CreateMessage {
     pub fn verify(&self, base_dir: &Path) -> AppResult<()> {
         // content should not be empty
         if self.content.is_empty() {
-            return Err(AppError::InvalidInput(
-                "content should not be empty".to_string(),
-            ));
+            return Err(AppError::invalid_input("empty content"));
         }
 
         // files should be exist
         for file in &self.files {
             let file_path = base_dir.join(file);
             if !file_path.exists() {
-                return Err(AppError::InvalidInput(format!(
-                    "file {} does not exist",
-                    file
-                )));
+                return Err(AppError::invalid_input("some files not exist"));
             }
         }
-
         Ok(())
     }
 }

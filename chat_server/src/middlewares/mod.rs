@@ -1,4 +1,5 @@
 mod auth;
+mod chat;
 mod request_id;
 mod server_time;
 
@@ -14,6 +15,7 @@ use tower_http::{
 };
 
 pub use auth::verify_token;
+pub use chat::ensure_chat_member;
 // use request_id::set_request_id;
 use tower::ServiceBuilder;
 use tracing::Level;
@@ -21,6 +23,7 @@ use tracing::Level;
 pub const REQUEST_ID_HEADER: &str = "x-request-id";
 pub const SERVER_TIME_HEADER: &str = "x-server-time";
 
+/// Set global request_id, server_time, CompressionLayer, TraceLayer
 pub fn set_global_layer(app: Router) -> Router {
     // NOTE header chars h2 require lowercase header
     let x_request_id = HeaderName::from_static(REQUEST_ID_HEADER);

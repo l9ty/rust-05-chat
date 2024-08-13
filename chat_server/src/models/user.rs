@@ -15,7 +15,8 @@ impl User {
     pub async fn create(pool: &sqlx::PgPool, input: &CreateUser) -> Result<User, AppError> {
         let user: Option<User> = sqlx::query_as(
             r#"
-        SELECT id, fullname, email, password_hash, ws_id, created_at FROM users WHERE email = $1
+        SELECT id, fullname, email, password_hash, ws_id, created_at
+        FROM users WHERE email = $1
         "#,
         )
         .bind(&input.email)
@@ -24,7 +25,7 @@ impl User {
         .context("find user failed")?;
 
         if user.is_some() {
-            return Err(AppError::EntityExist("User".to_string()));
+            return Err(AppError::already_exist("user"));
         }
 
         let password_hash = hash_password(&input.password)?;

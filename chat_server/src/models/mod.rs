@@ -1,4 +1,5 @@
 pub mod chat;
+pub mod file;
 pub mod message;
 pub mod user;
 pub mod workspace;
@@ -57,4 +58,10 @@ pub struct Message {
     pub content: String,
     pub files: Vec<String>,
     pub created_at: DateTime<Utc>,
+}
+
+pub struct ChatFile {
+    pub ws_id: RowID,
+    pub ext: String,
+    pub hash: String,
 }

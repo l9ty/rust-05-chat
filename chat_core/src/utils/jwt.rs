@@ -3,7 +3,7 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::{RowID, User};
+use crate::{RowID, User};
 
 pub struct JwtEncodingKey {
     ek: EncodingKey,
@@ -46,8 +46,8 @@ impl JwtDecodingKey {
     }
 
     pub fn verify(&self, token: &str) -> anyhow::Result<UserCliams> {
-        let cliams = jsonwebtoken::decode::<Cliams>(token, &self.dk, &self.validation)?;
-        Ok(cliams.claims.into())
+        let cliams = jsonwebtoken::decode::<Cliams>(token, &self.dk, &self.validation)?.claims;
+        Ok(cliams.into())
     }
 }
 
@@ -99,8 +99,8 @@ impl From<User> for UserCliams {
 mod tests {
     use super::*;
 
-    const EK: &[u8] = include_bytes!("../../fixtures/private.pem");
-    const DK: &[u8] = include_bytes!("../../fixtures/public.pem");
+    const EK: &[u8] = include_bytes!("../../../fixtures/private.pem");
+    const DK: &[u8] = include_bytes!("../../../fixtures/public.pem");
 
     #[test]
     fn sign_and_verify() {

@@ -1,10 +1,15 @@
 use std::path::{Path, PathBuf};
 
+use chat_core::RowID;
 use sha1::{Digest, Sha1};
 
 use crate::error::{AppError, AppResult};
 
-use super::{ChatFile, RowID};
+pub struct ChatFile {
+    pub ws_id: RowID,
+    pub ext: String,
+    pub hash: String,
+}
 
 impl ChatFile {
     pub fn new(ws_id: RowID, filename: &str, data: &[u8]) -> Self {

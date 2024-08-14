@@ -1,11 +1,10 @@
 use std::path::Path;
 
+use chat_core::{Message, RowID};
 use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::error::{AppError, AppResult};
-
-use super::{Message, RowID};
 
 #[derive(Deserialize)]
 pub struct CreateMessage {
@@ -22,54 +21,48 @@ pub struct ListMessage {
     pub limit: u32,
 }
 
-impl Message {
-    pub async fn list(
-        pool: &PgPool,
-        chat_id: RowID,
-        input: ListMessage,
-    ) -> AppResult<Vec<Message>> {
-        let messages = sqlx::query_as(
-            r#"
+pub async fn list(pool: &PgPool, chat_id: RowID, input: ListMessage) -> AppResult<Vec<Message>> {
+    let messages = sqlx::query_as(
+        r#"
             SELECT id, chat_id, sender_id, content, files, created_at
             FROM messages
             WHERE chat_id = $1 AND id < $2
             ORDER BY created_at DESC
             LIMIT $3
         "#,
-        )
-        .bind(chat_id)
-        .bind(input.last_id.unwrap_or(RowID::MAX))
-        .bind(input.limit as i64)
-        .fetch_all(pool)
-        .await?;
+    )
+    .bind(chat_id)
+    .bind(input.last_id.unwrap_or(RowID::MAX))
+    .bind(input.limit as i64)
+    .fetch_all(pool)
+    .await?;
 
-        Ok(messages)
-    }
+    Ok(messages)
+}
 
-    pub async fn create(
-        pool: &PgPool,
-        input: CreateMessage,
-        uid: RowID,
-        base_dir: &Path,
-    ) -> AppResult<Message> {
-        input.verify(base_dir)?;
+pub async fn create(
+    pool: &PgPool,
+    input: CreateMessage,
+    uid: RowID,
+    base_dir: &Path,
+) -> AppResult<Message> {
+    input.verify(base_dir)?;
 
-        let message = sqlx::query_as(
-            r#"
+    let message = sqlx::query_as(
+        r#"
             INSERT INTO messages (chat_id, sender_id, content, files)
             VALUES ($1, $2, $3, $4)
             RETURNING *
         "#,
-        )
-        .bind(input.chat_id)
-        .bind(uid)
-        .bind(input.content)
-        .bind(input.files)
-        .fetch_one(pool)
-        .await?;
+    )
+    .bind(input.chat_id)
+    .bind(uid)
+    .bind(input.content)
+    .bind(input.files)
+    .fetch_one(pool)
+    .await?;
 
-        Ok(message)
-    }
+    Ok(message)
 }
 
 impl CreateMessage {

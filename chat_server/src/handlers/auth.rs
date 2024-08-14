@@ -11,8 +11,8 @@ use serde_json::json;
 use crate::{
     error::AppError,
     models::{
+        self,
         user::{CreateUser, SigninInput},
-        User,
     },
     AppState,
 };
@@ -21,7 +21,7 @@ pub async fn singup_handler(
     State(state): State<AppState>,
     Json(input): Json<CreateUser>,
 ) -> Result<Response<Body>, AppError> {
-    let user = User::create(&state.db, &input).await?;
+    let user = models::user::create(&state.db, &input).await?;
     let token = state.ek.sign(&user.into())?;
     let body = SigninOutput { token };
     Ok((StatusCode::CREATED, Json(body)).into_response())
@@ -31,7 +31,7 @@ pub async fn signin_handler(
     State(state): State<AppState>,
     Json(input): Json<SigninInput>,
 ) -> Result<Response<Body>, AppError> {
-    let user = User::signin(&state.db, &input).await?;
+    let user = models::user::signin(&state.db, &input).await?;
     let Some(user) = user else {
         return Ok((
             StatusCode::FORBIDDEN,

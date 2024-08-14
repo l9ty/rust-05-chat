@@ -3,7 +3,6 @@ mod error;
 mod handlers;
 mod middlewares;
 mod models;
-mod utils;
 
 use std::{ops::Deref, sync::Arc};
 
@@ -12,11 +11,14 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use chat_core::{
+    middlewares::{set_global_layer, verify_token, VerifyToken},
+    utils::{JwtDecodingKey, JwtEncodingKey, UserCliams},
+};
 pub use config::AppConfig;
 use handlers::*;
-use middlewares::{ensure_chat_member, verify_token};
+use middlewares::ensure_chat_member;
 use sqlx::PgPool;
-use utils::{JwtDecodingKey, JwtEncodingKey};
 
 #[derive(Clone)]
 pub(crate) struct AppState {
@@ -48,7 +50,7 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
         .route("/upload", post(upload_file_handler))
         .route("/files/*path", get(download_file_handler))
         .nest("", chat)
-        .layer(from_fn_with_state(state.clone(), verify_token));
+        .layer(from_fn_with_state(state.clone(), verify_token::<AppState>));
 
     let root = Router::new()
         .route("/signup", post(singup_handler))
@@ -56,13 +58,20 @@ pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
         .nest("/api", api)
         .with_state(state);
 
-    Ok(middlewares::set_global_layer(root))
+    Ok(set_global_layer(root))
 }
 
 impl Deref for AppState {
     type Target = AppStateInner;
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl VerifyToken for AppState {
+    type Error = anyhow::Error;
+    fn verify(&self, token: &str) -> Result<UserCliams, Self::Error> {
+        self.dk.verify(token)
     }
 }
 
@@ -84,8 +93,8 @@ impl AppState {
 #[cfg(test)]
 impl AppState {
     fn new_for_test(pool: PgPool) -> AppState {
-        let pk = include_str!("../fixtures/private.pem");
-        let sk = include_str!("../fixtures/public.pem");
+        let pk = include_str!("../../fixtures/private.pem");
+        let sk = include_str!("../../fixtures/public.pem");
         let ek = JwtEncodingKey::load(pk.as_bytes()).unwrap();
         let dk = JwtDecodingKey::load(sk.as_bytes()).unwrap();
 

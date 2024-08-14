@@ -17,3 +17,11 @@ pub(crate) async fn sse_handler() -> Sse<impl Stream<Item = Result<Event, Infall
             .text("keep-alive-text"),
     )
 }
+
+// pub(crate) async fn sse_handler(
+//     Extension(User): Extension<UserCliams>,
+//     State(state): State<AppState>,
+//     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
+// ) {
+//     todo!()
+// }

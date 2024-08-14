@@ -5,11 +5,11 @@ use axum::{
     response::Response,
     Extension,
 };
+use chat_core::{utils::UserCliams, RowID};
 
 use crate::{
     error::{AppError, AppResult},
-    models::{Chat, RowID},
-    utils::UserCliams,
+    models::chat,
     AppState,
 };
 
@@ -21,7 +21,7 @@ pub async fn ensure_chat_member(
     req: Request,
     next: axum::middleware::Next,
 ) -> AppResult<Response> {
-    let is_member = Chat::is_member(&state.db, chat_id, user.uid).await?;
+    let is_member = chat::is_member(&state.db, chat_id, user.uid).await?;
     if !is_member {
         return Err(AppError::forbidden(
             "user is not the chat member or chat not exist",
@@ -33,12 +33,10 @@ pub async fn ensure_chat_member(
 #[cfg(test)]
 mod test {
     use axum::{body::Body, middleware::from_fn_with_state, routing::get, Router};
+    use chat_core::middlewares::verify_token;
     use http::StatusCode;
-
     use sqlx::PgPool;
     use tower::ServiceExt as _;
-
-    use crate::middlewares::verify_token;
 
     use super::*;
 
@@ -48,14 +46,14 @@ mod test {
 
     #[sqlx::test(
         migrator = "crate::tests::MIGRATOR",
-        fixtures("../../fixtures/test.sql")
+        fixtures("../../../fixtures/test.sql")
     )]
     async fn test_ensure_chat_member(pool: PgPool) {
         let state = AppState::new_for_test(pool);
         let router = Router::new()
             .route("/chat/:id", get(index_handler))
             .layer(from_fn_with_state(state.clone(), ensure_chat_member))
-            .layer(from_fn_with_state(state.clone(), verify_token));
+            .layer(from_fn_with_state(state.clone(), verify_token::<AppState>));
 
         // user 1 can access chat 1
         let token = state

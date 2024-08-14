@@ -5,15 +5,16 @@ use axum::{
     extract::{Multipart, Path, Query, State},
     Extension, Json,
 };
+use chat_core::{utils::UserCliams, Message, RowID};
 use tokio::fs;
 
 use crate::{
     error::{AppError, AppResult},
     models::{
-        message::{CreateMessage, ListMessage},
-        ChatFile, Message, RowID,
+        self,
+        file::ChatFile,
+        message::{self, CreateMessage, ListMessage},
     },
-    utils::UserCliams,
     AppState,
 };
 
@@ -22,7 +23,7 @@ pub async fn list_message_handler(
     Query(input): Query<ListMessage>,
     Path(id): Path<RowID>,
 ) -> AppResult<Json<Vec<Message>>> {
-    let messages = Message::list(&state.db, id, input).await?;
+    let messages = models::message::list(&state.db, id, input).await?;
     Ok(Json(messages))
 }
 
@@ -34,7 +35,7 @@ pub async fn send_message_handler(
 ) -> AppResult<Json<Message>> {
     let base = StdPath::new(&state.config.base_dir);
     input.chat_id = chat_id;
-    let msg = Message::create(&state.db, input, user.uid, base).await?;
+    let msg = message::create(&state.db, input, user.uid, base).await?;
     Ok(Json(msg))
 }
 
@@ -98,7 +99,7 @@ mod tests {
 
     #[sqlx::test(
         migrator = "crate::tests::MIGRATOR",
-        fixtures("../../fixtures/test.sql")
+        fixtures("../../../fixtures/test.sql")
     )]
     async fn t_list_message(pool: PgPool) {
         let state = AppState::new_for_test(pool);
@@ -118,7 +119,7 @@ mod tests {
 
     #[sqlx::test(
         migrator = "crate::tests::MIGRATOR",
-        fixtures("../../fixtures/test.sql")
+        fixtures("../../../fixtures/test.sql")
     )]
     async fn t_send_message(pool: PgPool) {
         let state = AppState::new_for_test(pool);

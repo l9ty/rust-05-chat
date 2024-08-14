@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chat-core = { workspace = true }
+
+http = { workspace = true }
 anyhow = { workspace = true }
 axum = { workspace = true }
 axum-extra = { workspace = true }
-chrono = { workspace = true }
 serde = { workspace = true }
 serde_yaml = { workspace = true }
 sqlx = { workspace = true }
@@ -17,13 +19,12 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tower = { workspace = true }
 tower-http ={ workspace = true }
+serde_json = { workspace = true }
+argon2 = { workspace = true }
 
-argon2 = "0.5.3"
-uuid = { version = "1.8.0", features = ["v7"] }
-headers = "0.4.0"
-jsonwebtoken = "9.3.0"
-http = "1.1.0"
-serde_json.workspace = true
-http-body-util = "0.1.2"
+# chat file
 sha1 = "0.10.6"
 hex = "0.4.3"
+
+[dev-dependencies]
+http-body-util = { workspace = true }

@@ -1,21 +1,17 @@
 [workspace]
-members = [ "chat_server","notify_server"]
+members = [ "chat_core", "chat_server","notify_server"]
 resolver = "2"
 
 [workspace.dependencies]
+chat-core = { path = "./chat_core" }
+
+thiserror = "1"
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"], default-features = false }
-axum = { version = "0.7", features = ["http2", "query", "tracing", "multipart", "macros"] }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = { version = "0.9" }
-sqlx = { version = "0.8", features = [
-    "chrono",
-    "postgres",
-    "tls-rustls",
-    "runtime-tokio",
-]}
 serde_json = "1"
-thiserror = "1"
+
 tokio = { version = "1", features = [
     "rt",
     "rt-multi-thread",
@@ -23,6 +19,22 @@ tokio = { version = "1", features = [
 ]}
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tower-http = { version = "0.5.2", features = ["compression-br", "compression-deflate", "compression-gzip", "trace", "request-id"] }
+
 tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["compression-br", "compression-deflate", "compression-gzip", "trace", "request-id"] }
+axum = { version = "0.7", features = ["http2", "query", "tracing", "multipart", "macros"] }
 axum-extra = { version = "0.9.3", features = ["typed-header"]}
+headers = "0.4.0"
+
+sqlx = { version = "0.8", features = [
+    "chrono",
+    "postgres",
+    "tls-rustls",
+    "runtime-tokio",
+]}
+
+argon2 = "0.5.3"
+uuid = { version = "1.8.0", features = ["v7"] }
+jsonwebtoken = "9.3.0"
+http = "1.1.0"
+http-body-util = "0.1.2"

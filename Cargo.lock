@@ -485,6 +485,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "6.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "804c8821570c3f8b70230c2ba75ffa5c0f9a4189b9a432b6656c536712acae28"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+ "hashbrown",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+]
+
+[[package]]
 name = "der"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1168,7 +1182,13 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-extra",
+ "chat-core",
+ "dashmap",
  "futures",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sqlx",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -2179,6 +2199,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

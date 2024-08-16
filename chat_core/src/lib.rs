@@ -7,7 +7,7 @@ use sqlx::prelude::FromRow;
 
 pub type RowID = i64;
 
-#[derive(Clone, FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct User {
     pub id: RowID,
     pub fullname: String,
@@ -18,7 +18,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Clone, FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Workspace {
     pub id: RowID,
     pub name: String,
@@ -26,7 +26,7 @@ pub struct Workspace {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Clone, FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Chat {
     pub id: RowID,
     pub ws_id: RowID,
@@ -47,7 +47,7 @@ pub enum ChatType {
     PublicChannel,
 }
 
-#[derive(Clone, FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Message {
     pub id: RowID,
     pub chat_id: RowID,

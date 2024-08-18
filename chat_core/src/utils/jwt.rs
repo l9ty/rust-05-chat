@@ -110,4 +110,13 @@ mod tests {
         let user = dk.verify(&token).unwrap();
         assert_eq!(user.uid, RowID::default());
     }
+
+    // #[test]
+    // fn t_long_alive_token() {
+    //     let ek = JwtEncodingKey::load(EK).unwrap();
+    //     let mut cliams = Cliams::new(&UserCliams { uid: 1, ws_id: 1 });
+    //     cliams.exp = get_current_timestamp() + 3600 * 24 * 30 * 12 * 100; // 100 years
+    //     let token = jsonwebtoken::encode(&ek.header, &cliams, &ek.ek).unwrap();
+    //     assert_eq!(token, "")
+    // }
 }

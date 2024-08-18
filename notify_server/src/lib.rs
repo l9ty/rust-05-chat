@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 mod notify_event;
 mod sse;
 
@@ -16,7 +16,7 @@ use chat_core::{
     utils::{JwtDecodingKey, UserCliams},
     RowID,
 };
-use config::NotifyConfig;
+pub use config::NotifyConfig;
 use dashmap::DashMap;
 use notify_event::{setup_pg_listener, NotifyEvent};
 use sse::sse_handler;
@@ -36,6 +36,18 @@ pub struct NotifyStateInner {
     dk: JwtDecodingKey,
 }
 
+pub async fn get_router(state: NotifyState) -> anyhow::Result<Router> {
+    let router = Router::new()
+        .route("/events", get(sse_handler))
+        .layer(from_fn_with_state(
+            state.clone(),
+            verify_token::<NotifyState>,
+        ))
+        .route("/", get(index_handler))
+        .with_state(state.clone());
+    Ok(router)
+}
+
 pub async fn run_server() -> anyhow::Result<()> {
     let config = NotifyConfig::load().context("read notify config")?;
     let addr = format!("{}:{}", &config.server.host, config.server.port);
@@ -47,14 +59,7 @@ pub async fn run_server() -> anyhow::Result<()> {
         .await
         .context("setup pg listener")?;
 
-    let router = Router::new()
-        .route("/events", get(sse_handler))
-        .layer(from_fn_with_state(
-            state.clone(),
-            verify_token::<NotifyState>,
-        ))
-        .route("/", get(index_handler))
-        .with_state(state.clone());
+    let router = get_router(state.clone()).await?;
     let listener = TcpListener::bind(addr).await?;
     axum::serve(listener, router).await?;
     Ok(())

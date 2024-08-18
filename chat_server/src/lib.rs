@@ -21,21 +21,19 @@ use middlewares::ensure_chat_member;
 use sqlx::PgPool;
 
 #[derive(Clone)]
-pub(crate) struct AppState {
+pub struct AppState {
     inner: Arc<AppStateInner>,
 }
 
 #[allow(unused)]
-pub(crate) struct AppStateInner {
+pub struct AppStateInner {
     pub(crate) config: AppConfig,
     pub(crate) dk: JwtDecodingKey,
     pub(crate) ek: JwtEncodingKey,
     pub(crate) db: PgPool,
 }
 
-pub async fn get_router(config: AppConfig) -> anyhow::Result<Router> {
-    let state = AppState::try_new(config).await?;
-
+pub async fn get_router(state: AppState) -> anyhow::Result<Router> {
     let chat = Router::new()
         .route("/chat/:id", get(get_chat_handler))
         .route(
@@ -90,9 +88,9 @@ impl AppState {
     }
 }
 
-#[cfg(test)]
+#[cfg(feature = "test-utils")]
 impl AppState {
-    fn new_for_test(pool: PgPool) -> AppState {
+    pub fn new_for_test(pool: PgPool) -> AppState {
         let pk = include_str!("../../fixtures/private.pem");
         let sk = include_str!("../../fixtures/public.pem");
         let ek = JwtEncodingKey::load(pk.as_bytes()).unwrap();
@@ -120,7 +118,7 @@ impl AppState {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    pub(crate) static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../migrations");
+#[cfg(feature = "test-utils")]
+pub mod tests {
+    pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../migrations");
 }

@@ -8,7 +8,6 @@ use axum::{
     },
     Extension,
 };
-use axum_extra::{headers, TypedHeader};
 use chat_core::utils::UserCliams;
 use futures::Stream;
 use tokio::sync::broadcast;
@@ -17,12 +16,13 @@ use tracing::info;
 
 use crate::{notify_event::NotifyEvent, NotifyState};
 
+// FIXME: when sse connection is closed, we should remove it from users
 pub(crate) async fn sse_handler(
     Extension(user): Extension<UserCliams>,
     State(state): State<NotifyState>,
-    TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
+    // TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
 ) -> Sse<impl Stream<Item = Result<Event, axum::Error>>> {
-    info!("user {} connected: {}", user.uid, user_agent);
+    info!("user {} connected", user.uid);
     let users = state.users.clone();
 
     let rx = if let Some(tx) = users.get(&user.uid) {

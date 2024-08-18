@@ -65,7 +65,7 @@ pub async fn setup_pg_listener(state: NotifyState) -> anyhow::Result<()> {
             let nf: AppNotification = match nf.try_into() {
                 Ok(nf) => nf,
                 Err(e) => {
-                    error!("failed to parse pg notification: {}", e);
+                    error!("failed to parse pg notification: {:#}", e);
                     continue;
                 }
             };
@@ -95,13 +95,13 @@ impl TryFrom<PgNotification> for AppNotification {
         match channel {
             "chat_updated" => {
                 let payload = serde_json::from_str::<ChatUpdatedNotification>(payload)
-                    .with_context(|| format!("invalid chat_updated payload: {:?}", payload))?;
+                    .with_context(|| format!("invalid chat_updated payload: {}", payload))?;
                 payload.try_into()
             }
             "chat_message_created" => {
                 let payload = serde_json::from_str::<NewMessageNotification>(payload)
                     .with_context(|| {
-                        format!("invalid chat_message_created payload: {:?}", payload)
+                        format!("invalid chat_message_created payload: {}", payload)
                     })?;
                 payload.try_into()
             }

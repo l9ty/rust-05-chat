@@ -1,9 +1,11 @@
 [workspace]
-members = [ "chat_core", "chat_server","notify_server"]
+members = [ "chat_core", "chat_server", "chat_test","notify_server"]
 resolver = "2"
 
 [workspace.dependencies]
 chat-core = { path = "./chat_core" }
+chat-server = { path = "./chat_server" }
+notify-server = { path = "./notify_server" }
 
 thiserror = "1"
 anyhow = "1"

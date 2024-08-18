@@ -1,17 +1,22 @@
+use std::borrow::Cow;
+
 use axum::{
     body::Body,
-    extract::{FromRequestParts, Request, State},
+    extract::{FromRequestParts, Query, Request, State},
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
 };
 use axum_extra::TypedHeader;
 use headers::{authorization::Bearer, Authorization};
-use tracing::warn;
+use serde::Deserialize;
 
 use super::VerifyToken;
 
-// TODO: rename token header
+#[derive(Deserialize, Default)]
+struct QueryParams {
+    access_token: String,
+}
 
 pub async fn verify_token<S>(State(state): State<S>, req: Request, next: Next) -> Response<Body>
 where
@@ -19,18 +24,28 @@ where
 {
     let (mut parts, body) = req.into_parts();
     let header = TypedHeader::<Authorization<Bearer>>::from_request_parts(&mut parts, &state).await;
+
     let token = match header {
-        Ok(TypedHeader(Authorization(token))) => token,
+        Ok(TypedHeader(Authorization(ref token))) => Cow::Borrowed(token.token()),
         Err(e) => {
-            warn!("failed to parse bearer header: {:?}", e);
-            return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
+            if !e.is_missing() {
+                return (StatusCode::UNAUTHORIZED, "cannot parse token from header")
+                    .into_response();
+            }
+            let query = Query::<QueryParams>::from_request_parts(&mut parts, &state)
+                .await
+                .unwrap_or_default();
+            Cow::Owned(query.0.access_token)
         }
     };
 
-    let user = match state.verify(token.token()) {
+    if token.is_empty() {
+        return (StatusCode::UNAUTHORIZED, "missing token").into_response();
+    }
+
+    let user = match state.verify(token.as_ref()) {
         Ok(user) => user,
-        Err(e) => {
-            warn!("invalid bearer token {:?}", e);
+        Err(_) => {
             return (StatusCode::FORBIDDEN, "invalid token").into_response();
         }
     };
@@ -100,10 +115,24 @@ mod test {
         let resp = router.clone().oneshot(req.unwrap()).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
 
+        // good token in query
+        let req = Request::builder()
+            .uri(format!("/?access_token={token}"))
+            .body(Body::empty());
+        let resp = router.clone().oneshot(req.unwrap()).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+
         // bad token
         let req = Request::builder()
             .uri("/")
             .header("Authorization", "Bearer nothing")
+            .body(Body::empty());
+        let resp = router.clone().oneshot(req.unwrap()).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+
+        // bad token in query
+        let req = Request::builder()
+            .uri("/?access_token=nothing")
             .body(Body::empty());
         let resp = router.clone().oneshot(req.unwrap()).await.unwrap();
         assert_eq!(resp.status(), StatusCode::FORBIDDEN);
